@@ -135,23 +135,22 @@ def main():
     gpt.cuda()
 
     with torch.no_grad():
-
-        outputs = []
-        for k in range(args.total):
-            # Generate tokens.
-            tokens_batch = gpt(start_ids, start_lengths, attn_mask)
-            if tokens_batch is not None:  # only a thread (rank 0) gets the output, while the others are supposed to return None.
-                tokens_batch = tokens_batch.cpu().numpy()
-                for i, (context, tokens) in enumerate(zip(contexts, tokens_batch)):
-                    token = tokens[start_lengths[i]:]  # exclude context input from the output
-                    output = enc.decode(tokens[start_lengths[i]:])
-                    outputs.append(output)
-                    # print("[INFO] batch {}: \n[Context]\n{}\n\n[Output]\n{}".format(i, context, output))
-
         if args.sample_output_file:
             with open(args.sample_output_file, "w+") as f:
-                outputs = [json.dumps({"text": o.replace("\n","\\n")}) for o in outputs]
-                f.writelines("\n".join(outputs))
+                for k in range(args.total):
+                    # Generate tokens.
+                    outputs = []
+                    tokens_batch = gpt(start_ids, start_lengths, attn_mask)
+                    if tokens_batch is not None:  # only a thread (rank 0) gets the output, while the others are supposed to return None.
+                        tokens_batch = tokens_batch.cpu().numpy()
+                        for i, (context, tokens) in enumerate(zip(contexts, tokens_batch)):
+                            token = tokens[start_lengths[i]:]  # exclude context input from the output
+                            output = enc.decode(tokens[start_lengths[i]:])
+                            outputs.append(output)
+                            # print("[INFO] batch {}: \n[Context]\n{}\n\n[Output]\n{}".format(i, context, output))
+
+                    outputs = [json.dumps({"text": o.replace("\n","\\n")}) for o in outputs]
+                    f.writelines("\n".join(outputs))
 
         # # Measure inference time.
         # if args.time:
