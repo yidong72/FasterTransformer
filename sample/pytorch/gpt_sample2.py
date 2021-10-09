@@ -145,7 +145,8 @@ def main():
                         tokens_batch = tokens_batch.cpu().numpy()
                         for i, (context, tokens) in enumerate(zip(contexts, tokens_batch)):
                             token = tokens[start_lengths[i]:]  # exclude context input from the output
-                            output = enc.decode(tokens[start_lengths[i]:])
+                            token[token>=400] = 3
+                            output = enc.decode(token)
                             outputs.append(output)
                             # print("[INFO] batch {}: \n[Context]\n{}\n\n[Output]\n{}".format(i, context, output))
 
