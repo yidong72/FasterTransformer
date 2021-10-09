@@ -24,8 +24,11 @@ __global__ void ker_curand_setup(curandState_t* state, const int size)
     {
         // curand_init(clock(), blockIdx.x * blockDim.x + threadIdx.x, 0, &state[blockIdx.x * blockDim.x + threadIdx.x]);
         // fix the seed to prevent the seed of different gpu are differnet in Tensor Parallel
+        // if(threadIdx.x + blockIdx.x * blockDim.x < size)
+        //     curand_init(0, blockIdx.x * blockDim.x + threadIdx.x, 0, &state[blockIdx.x * blockDim.x + threadIdx.x]);
         if(threadIdx.x + blockIdx.x * blockDim.x < size)
-            curand_init(0, blockIdx.x * blockDim.x + threadIdx.x, 0, &state[blockIdx.x * blockDim.x + threadIdx.x]);
+            curand_init(clock(), blockIdx.x * blockDim.x + threadIdx.x, 0, &state[blockIdx.x * blockDim.x + threadIdx.x]);
+ 
     }
     
 void ker_curand_setupLauncher(curandState_t* state,
